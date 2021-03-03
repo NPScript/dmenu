@@ -133,28 +133,35 @@ drawmenu(void)
 	struct item *item;
 	int x = 0, y = 0, w;
 
-	drw_setscheme(drw, scheme[SchemeNorm]);
+	drw_setscheme(drw, scheme[SchemeSel]);
 	drw_rect(drw, 0, 0, mw, mh, 1, 1);
+	drw_setscheme(drw, scheme[SchemeNorm]);
+	drw_rect(drw, borderline, borderline, mw - 2 * borderline, mh - 2 * borderline, 1, 1);
+	drw_setscheme(drw, scheme[SchemeSel]);
+	drw_rect(drw, 0, bh + border, mw, 1, 1, 1);
+	drw_setscheme(drw, scheme[SchemeNorm]);
 
 	if (prompt && *prompt) {
 		drw_setscheme(drw, scheme[SchemeSel]);
-		x = drw_text(drw, x, 0, promptw, bh, lrpad / 2, prompt, 0);
+		x = drw_text(drw, x + border, border, promptw, bh, lrpad / 2, prompt, 0);
 	}
 	/* draw input field */
 	w = (lines > 0 || !matches) ? mw - x : inputw;
+	w -= 2 * border;
 	drw_setscheme(drw, scheme[SchemeNorm]);
-	drw_text(drw, x, 0, w, bh, lrpad / 2, text, 0);
+	drw_text(drw, x + border, border / 2, w, bh, lrpad / 2, text, 0);
 
 	curpos = TEXTW(text) - TEXTW(&text[cursor]);
 	if ((curpos += lrpad / 2 - 1) < w) {
 		drw_setscheme(drw, scheme[SchemeNorm]);
-		drw_rect(drw, x + curpos, 2, 2, bh - 4, 1, 0);
+		drw_rect(drw, x + curpos + border + 2, border, 2, bh - border / 2 - 4, 1, 0);
 	}
 
 	if (lines > 0) {
 		/* draw vertical list */
+		y += 2 * border;
 		for (item = curr; item != next; item = item->right)
-			drawitem(item, x, y += bh, mw - x);
+			drawitem(item, x + border, y += bh, mw - x - 2 * border);
 	} else if (matches) {
 		/* draw horizontal list */
 		x += inputw;
@@ -608,9 +615,9 @@ setup(void)
 	utf8 = XInternAtom(dpy, "UTF8_STRING", False);
 
 	/* calculate menu geometry */
-	bh = drw->fonts->h + 2;
+	bh = drw->fonts->h + 2 * border / 2;
 	lines = MAX(lines, 0);
-	mh = (lines + 1) * bh;
+	mh = (lines + 1) * bh + 3 * border;
 #ifdef XINERAMA
 	i = 0;
 	if (parentwin == root && (info = XineramaQueryScreens(dpy, &n))) {
